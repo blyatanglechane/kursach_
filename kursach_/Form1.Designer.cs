@@ -83,6 +83,7 @@
             this.Graphic2.TabIndex = 2;
             this.Graphic2.Text = "Graphic2";
             this.Graphic2.UseVisualStyleBackColor = false;
+            this.Graphic2.Click += new System.EventHandler(this.Graphic2_Click);
             // 
             // Form1
             // 

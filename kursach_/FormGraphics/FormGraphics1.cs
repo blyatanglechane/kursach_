@@ -16,5 +16,10 @@ namespace kursach_.FormGraphics
         {
             InitializeComponent();
         }
+
+        private void FormGraphics1_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }
