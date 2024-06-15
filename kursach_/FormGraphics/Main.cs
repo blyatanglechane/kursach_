@@ -11,11 +11,11 @@ using System.Windows.Forms;
 
 namespace kursach_
 {
-    public partial class Form1 : Form
+    public partial class Main : Form
     {
         DataBase dataBase = new DataBase();
 
-        public Form1()
+        public Main()
         {
             InitializeComponent();
         }
@@ -43,6 +43,18 @@ namespace kursach_
             formGraphics2.Show();
         }
 
+        private void MainLogo_Click(object sender, EventArgs e)
+        {
 
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            // Создаем экземпляр новой формы
+            Comparison formComparison = new Comparison();
+
+            // Отображаем форму
+            formComparison.Show();
+        }
     }
 }

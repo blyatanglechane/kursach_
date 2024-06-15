@@ -48,11 +48,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataBase.cs" />
-    <Compile Include="Form1.cs">
+    <Compile Include="FormGraphics\Main.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form1.Designer.cs">
-      <DependentUpon>Form1.cs</DependentUpon>
+    <Compile Include="FormGraphics\Main.Designer.cs">
+      <DependentUpon>Main.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormGraphics\Comparison.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormGraphics\Comparison.Designer.cs">
+      <DependentUpon>Comparison.cs</DependentUpon>
     </Compile>
     <Compile Include="FormGraphics\FormGraphics1.cs">
       <SubType>Form</SubType>
@@ -68,11 +74,17 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="Form1.resx">
-      <DependentUpon>Form1.cs</DependentUpon>
+    <EmbeddedResource Include="FormGraphics\Comparison.resx">
+      <DependentUpon>Comparison.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormGraphics\Main.resx">
+      <DependentUpon>Main.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FormGraphics\FormGraphics1.resx">
       <DependentUpon>FormGraphics1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormGraphics\FormGraphics2.resx">
+      <DependentUpon>FormGraphics2.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -82,6 +94,7 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -95,6 +108,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="images\172487_key_icon.png" />
+    <Content Include="images\290119_card_id_identification_identity_profile_icon.png" />
+    <Content Include="images\3671795_food_location_icon.png" />
+    <Content Include="images\8665280_dna_biology_science_laboratory_icon.ico" />
+    <Content Include="images\8665280_dna_biology_science_laboratory_icon.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
