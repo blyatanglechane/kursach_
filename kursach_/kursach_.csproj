@@ -62,7 +62,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DataBase.cs" />
+    <Compile Include="DB\DataBase.cs" />
     <Compile Include="FormGraphics\Main.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -111,6 +111,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <None Include="DB\DBBIA.bak" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -125,6 +126,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="DB\script.sql" />
     <Content Include="images\172487_key_icon.png" />
     <Content Include="images\290119_card_id_identification_identity_profile_icon.png" />
     <Content Include="images\2998144_eco_growth_plant_science_sprout_icon.png" />
