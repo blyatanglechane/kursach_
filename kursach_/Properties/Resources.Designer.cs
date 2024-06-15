@@ -83,9 +83,29 @@ namespace kursach_.Properties {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap _2998144_eco_growth_plant_science_sprout_icon {
+            get {
+                object obj = ResourceManager.GetObject("2998144_eco_growth_plant_science_sprout_icon", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap _3671795_food_location_icon {
             get {
                 object obj = ResourceManager.GetObject("3671795_food_location_icon", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap _7218112_calendar_day_month_date_year_icon {
+            get {
+                object obj = ResourceManager.GetObject("7218112_calendar_day_month_date_year_icon", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

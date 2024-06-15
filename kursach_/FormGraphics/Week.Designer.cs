@@ -1,6 +1,6 @@
 ﻿namespace kursach_.FormGraphics
 {
-    partial class FormGraphics2
+    partial class Week
     {
         /// <summary>
         /// Required designer variable.
@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Week));
             this.IDInput = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
@@ -48,6 +49,7 @@
             this.IDInput.Name = "IDInput";
             this.IDInput.Size = new System.Drawing.Size(246, 63);
             this.IDInput.TabIndex = 0;
+            this.IDInput.TextChanged += new System.EventHandler(this.IDInput_TextChanged);
             // 
             // label1
             // 
@@ -120,7 +122,7 @@
             this.pictureBox1.TabIndex = 6;
             this.pictureBox1.TabStop = false;
             // 
-            // FormGraphics2
+            // Week
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -133,7 +135,8 @@
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.IDInput);
-            this.Name = "FormGraphics2";
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.Name = "Week";
             this.Text = "FormGraphics2";
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();

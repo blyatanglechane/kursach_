@@ -13,11 +13,11 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace kursach_.FormGraphics
 {
-    public partial class FormGraphics2 : Form
+    public partial class Week : Form
     {
         DataBase database = new DataBase();
 
-        public FormGraphics2()
+        public Week()
         {
             InitializeComponent();
         }
@@ -221,6 +221,11 @@ namespace kursach_.FormGraphics
             {
                 MessageBox.Show("Произошла ошибка: " + ex.Message);
             }
+        }
+
+        private void IDInput_TextChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }

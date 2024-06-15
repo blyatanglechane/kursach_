@@ -23,7 +23,7 @@ namespace kursach_
         private void Graphic1_Click(object sender, EventArgs e)
         {
             // Создаем экземпляр новой формы
-            FormGraphics1 formGraphics1 = new FormGraphics1();
+            FormGraphics.Day formGraphics1 = new FormGraphics.Day();
 
             // Отображаем форму
             formGraphics1.Show();
@@ -37,7 +37,7 @@ namespace kursach_
         private void Graphic2_Click(object sender, EventArgs e)
         {
             // Создаем экземпляр новой формы
-            FormGraphics2 formGraphics2 = new FormGraphics2();
+            Week formGraphics2 = new Week();
 
             // Отображаем форму
             formGraphics2.Show();
