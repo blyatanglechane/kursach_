@@ -1,231 +1,190 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.IO;
-using System.Data.SqlClient;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using System.Windows.Forms;
 
 namespace kursach_.FormGraphics
 {
     public partial class Week : Form
     {
-        DataBase database = new DataBase();
+        private string[,] excelTable;
 
-        public Week()
+        public Week(string[,] table)
         {
             InitializeComponent();
+            excelTable = table;
         }
-        private void ButtonIDEvent_Click(object sender, EventArgs e)
+
+        private void ButtonFCsEvent_Click(object sender, EventArgs e)
         {
-            // Проверка корректности введённых данных
-            if (!int.TryParse(IDInput.Text, out int id) || id < 1 || id > 457)
+            // Получаем ФИО из текстового поля
+            string patient = FCsInput.Text;
+
+            // Получаем данные для заданного ФИО
+            var (avgProteins, avgFats, avgCarbohydrates, avgCalories) = GetWeeklyAveragesByName(patient);
+
+            if (avgProteins == -1)
             {
-                MessageBox.Show("Пожалуйста, введите корректное числовое значение для ID в диапазоне от 1 до 457.");
+                MessageBox.Show("Пациент не найден. Пожалуйста, введите корректное имя пациента.");
                 return;
             }
 
-            // Строка подключения к базе данных (замените на свою)
-            string connectionString = "Data Source=.;Initial Catalog=DBBIA;Integrated Security=True";
+            // Форматирование результата
+            string result = $"Результат по пациенту {patient} за неделю:\nБелки: {avgProteins:F1}\nЖиры: {avgFats:F1}\nУглеводы: {avgCarbohydrates}\nКалории: {avgCalories:F1}";
 
-            // SQL запрос для суммирования белков
-            string queryProteins = @"SELECT ISNULL(MON.MONProteins, 0) + ISNULL(TUE.TUESProteins, 0) + ISNULL(WED.WEDProteins, 0) + ISNULL(THU.THURSProteins, 0) + ISNULL(FRI.FRIProteins, 0) + ISNULL(SAT.SATProteins, 0) + ISNULL(SUN.SUNProteins, 0) AS TotalProteins 
-                                 FROM BIAStudent S 
-                                 LEFT JOIN MONDayWeek MON ON S.id = MON.id
-                                 LEFT JOIN TUESDayWeek TUE ON S.id = TUE.id
-                                 LEFT JOIN WEDDayWeek WED ON S.id = WED.id
-                                 LEFT JOIN THURSDayWeek THU ON S.id = THU.id
-                                 LEFT JOIN FRIDayWeek FRI ON S.id = FRI.id
-                                 LEFT JOIN SATDayWeek SAT ON S.id = SAT.id
-                                 LEFT JOIN SUNDayWeek SUN ON S.id = SUN.id
-                                 WHERE S.id = @id";
+            // Получаем средние значения за неделю по всем студентам
+            var (overallAvgProteins, overallAvgFats, overallAvgCarbohydrates, overallAvgCalories) = GetWeeklyAveragesForAll();
 
-            // SQL запрос для суммирования жиров
-            string queryFats = @"SELECT ISNULL(MON.MONFats, 0) + ISNULL(TUE.TUESFats, 0) + ISNULL(WED.WEDFats, 0) + ISNULL(THU.THURSFats, 0) + ISNULL(FRI.FRIFats, 0) + ISNULL(SAT.SATFats, 0) + ISNULL(SUN.SUNFats, 0) AS TotalFats 
-                             FROM BIAStudent S 
-                             LEFT JOIN MONDayWeek MON ON S.id = MON.id
-                             LEFT JOIN TUESDayWeek TUE ON S.id = TUE.id
-                             LEFT JOIN WEDDayWeek WED ON S.id = WED.id
-                             LEFT JOIN THURSDayWeek THU ON S.id = THU.id
-                             LEFT JOIN FRIDayWeek FRI ON S.id = FRI.id
-                             LEFT JOIN SATDayWeek SAT ON S.id = SAT.id
-                             LEFT JOIN SUNDayWeek SUN ON S.id = SUN.id
-                             WHERE S.id = @id";
-            string queryCarbohydrates = @"SELECT ISNULL(MON.MONCarbohydrates, 0) + ISNULL(TUE.TUESCarbohydrates, 0) + ISNULL(WED.WEDCarbohydrates, 0) + ISNULL(THU.THURSCarbohydrates, 0) + ISNULL(FRI.FRICarbohydrates, 0) + ISNULL(SAT.SATCarbohydrates, 0) + ISNULL(SUN.SUNCarbohydrates, 0) AS TotalCarbohydrates FROM BIAStudent S LEFT JOIN MONDayWeek MON ON S.id = MON.id
-            LEFT JOIN TUESDayWeek TUE ON S.id = TUE.id
-            LEFT JOIN WEDDayWeek WED ON S.id = WED.id
-            LEFT JOIN THURSDayWeek THU ON S.id = THU.id
-            LEFT JOIN FRIDayWeek FRI ON S.id = FRI.id
-            LEFT JOIN SATDayWeek SAT ON S.id = SAT.id
-            LEFT JOIN SUNDayWeek SUN ON S.id = SUN.id
-            WHERE S.id = @id";
+            result += $"\n\nСреднее значение за неделю по всем студентам:\nБелки: {overallAvgProteins:F1}\nЖиры: {overallAvgFats:F1}\nУглеводы: {overallAvgCarbohydrates:F1}\nКалории: {overallAvgCalories:F1}";
 
-            string queryCalories = @"SELECT ISNULL(MON.MONCalories, 0) + ISNULL(TUE.TUESCalories, 0) + ISNULL(WED.WEDCalories, 0) + ISNULL(THU.THURSCalories, 0) + ISNULL(FRI.FRICalories, 0) + ISNULL(SAT.SATCalories, 0) + ISNULL(SUN.SUNCalories, 0) AS TotalCalories FROM BIAStudent S LEFT JOIN MONDayWeek MON ON S.id = MON.id
-            LEFT JOIN TUESDayWeek TUE ON S.id = TUE.id
-            LEFT JOIN WEDDayWeek WED ON S.id = WED.id
-            LEFT JOIN THURSDayWeek THU ON S.id = THU.id
-            LEFT JOIN FRIDayWeek FRI ON S.id = FRI.id
-            LEFT JOIN SATDayWeek SAT ON S.id = SAT.id
-            LEFT JOIN SUNDayWeek SUN ON S.id = SUN.id
-            WHERE S.id = @id";
+            // Запись результата в файл weeklyFCs.txt
+            string filePath = "weeklyFCs.txt";
+            File.WriteAllText(filePath, result);
 
-            try
+            // Показать сообщение об успешной записи
+            MessageBox.Show("Результат записан в файл weeklyFCs.txt");
+        }
+
+        private (decimal avgProteins, decimal avgFats, decimal avgCarbohydrates, decimal avgCalories) GetWeeklyAveragesByName(string patient)
+        {
+            // Поиск строки, соответствующей заданному ФИО
+            int rowIndex = -1;
+            for (int i = 0; i < excelTable.GetLength(0); i++)
             {
-                using (SqlConnection connection = new SqlConnection(connectionString))
+                if (excelTable[i, 0].Equals(patient, StringComparison.OrdinalIgnoreCase)) // Предполагается, что ФИО находится в первом столбце (индекс 0)
                 {
-                    connection.Open();
-
-                    // Выполнение первого запроса (Белки)
-                    SqlCommand commandProteins = new SqlCommand(queryProteins, connection);
-                    commandProteins.Parameters.AddWithValue("@id", id);
-                    decimal totalProteins = (decimal)commandProteins.ExecuteScalar();
-
-                    // Выполнение второго запроса (Жиры)
-                    SqlCommand commandFats = new SqlCommand(queryFats, connection);
-                    commandFats.Parameters.AddWithValue("@id", id);
-                    decimal totalFats = (decimal)commandFats.ExecuteScalar();
-
-                    // Выполнение третьего запроса (Углеводы)
-                    SqlCommand commandCarbohydrates = new SqlCommand(queryCarbohydrates, connection);
-                    commandCarbohydrates.Parameters.AddWithValue("@id", id);
-                    decimal totalCarbohydrates = (decimal)commandCarbohydrates.ExecuteScalar();
-
-                    // Выполнение четвёртого запроса (Калории)
-                    SqlCommand commandCalories = new SqlCommand(queryCalories, connection);
-                    commandCalories.Parameters.AddWithValue("@id", id);
-                    decimal totalCalories = (decimal)commandCalories.ExecuteScalar();
-
-                    // Форматирование результата
-                    string result = $"Результат по ID {id} за неделю:\nБелки: {totalProteins}\nЖиры: {totalFats}\nУглеводы: {totalCarbohydrates}\nКалории: {totalCalories}";
-
-                    // Запись результата в файл input.txt
-                    string filePath = "weeklyID.txt";
-                    File.WriteAllText(filePath, result);
-
-                    // Показать сообщение об успешной записи
-                    MessageBox.Show("Результат записан в файл weeklyID.txt");
+                    rowIndex = i;
+                    break;
                 }
             }
-            catch (Exception ex)
+
+            if (rowIndex == -1)
             {
-                MessageBox.Show("Произошла ошибка: " + ex.Message);
+                return (-1, -1, -1, -1); // Пациент не найден
             }
-        }
-        private void ButtonFCsEvent_Click(object sender, EventArgs e)
-        {
-            // Получаем ID из текстового поля
-            string patient = FCsInput.Text;
 
-            // Строка подключения к базе данных (замените на свою)
-            string connectionString = "Data Source=.;Initial Catalog=DBBIA;Integrated Security=True";
+            // Индексы столбцов с данными
+            int[] proteinIndices = { 35, 51, 67, 83, 99, 115, 131 };
+            int[] fatIndices = { 36, 52, 68, 84, 100, 116, 132 };
+            int[] carbIndices = { 37, 53, 69, 85, 101, 117, 133 };
+            int[] calorieIndices = { 38, 54, 70, 86, 102, 118, 134 };
 
-            // SQL запрос для проверки наличия пациента
-            string queryCheckPatient = "SELECT COUNT(*) FROM BIAStudent WHERE patient = @patient";
+            decimal totalProteins = 0, totalFats = 0, totalCarbohydrates = 0, totalCalories = 0;
+            int daysCount = 7;
 
-            // SQL запрос для суммирования белков
-            string queryProteins = @"SELECT ISNULL(MON.MONProteins, 0) + ISNULL(TUE.TUESProteins, 0) + ISNULL(WED.WEDProteins, 0) + ISNULL(THU.THURSProteins, 0) + ISNULL(FRI.FRIProteins, 0) + ISNULL(SAT.SATProteins, 0) + ISNULL(SUN.SUNProteins, 0) AS TotalProteins 
-                                 FROM BIAStudent S 
-                                 LEFT JOIN MONDayWeek MON ON S.id = MON.id
-                                 LEFT JOIN TUESDayWeek TUE ON S.id = TUE.id
-                                 LEFT JOIN WEDDayWeek WED ON S.id = WED.id
-                                 LEFT JOIN THURSDayWeek THU ON S.id = THU.id
-                                 LEFT JOIN FRIDayWeek FRI ON S.id = FRI.id
-                                 LEFT JOIN SATDayWeek SAT ON S.id = SAT.id
-                                 LEFT JOIN SUNDayWeek SUN ON S.id = SUN.id
-                                 WHERE S.patient = @patient";
-
-            // SQL запрос для суммирования жиров
-            string queryFats = @"SELECT ISNULL(MON.MONFats, 0) + ISNULL(TUE.TUESFats, 0) + ISNULL(WED.WEDFats, 0) + ISNULL(THU.THURSFats, 0) + ISNULL(FRI.FRIFats, 0) + ISNULL(SAT.SATFats, 0) + ISNULL(SUN.SUNFats, 0) AS TotalFats 
-                             FROM BIAStudent S 
-                             LEFT JOIN MONDayWeek MON ON S.id = MON.id
-                             LEFT JOIN TUESDayWeek TUE ON S.id = TUE.id
-                             LEFT JOIN WEDDayWeek WED ON S.id = WED.id
-                             LEFT JOIN THURSDayWeek THU ON S.id = THU.id
-                             LEFT JOIN FRIDayWeek FRI ON S.id = FRI.id
-                             LEFT JOIN SATDayWeek SAT ON S.id = SAT.id
-                             LEFT JOIN SUNDayWeek SUN ON S.id = SUN.id
-                             WHERE S.patient = @patient";
-
-            string queryCarbohydrates = @"SELECT ISNULL(MON.MONCarbohydrates, 0) + ISNULL(TUE.TUESCarbohydrates, 0) + ISNULL(WED.WEDCarbohydrates, 0) + ISNULL(THU.THURSCarbohydrates, 0) + ISNULL(FRI.FRICarbohydrates, 0) + ISNULL(SAT.SATCarbohydrates, 0) + ISNULL(SUN.SUNCarbohydrates, 0) AS TotalCarbohydrates FROM BIAStudent S LEFT JOIN MONDayWeek MON ON S.id = MON.id
-            LEFT JOIN TUESDayWeek TUE ON S.id = TUE.id
-            LEFT JOIN WEDDayWeek WED ON S.id = WED.id
-            LEFT JOIN THURSDayWeek THU ON S.id = THU.id
-            LEFT JOIN FRIDayWeek FRI ON S.id = FRI.id
-            LEFT JOIN SATDayWeek SAT ON S.id = SAT.id
-            LEFT JOIN SUNDayWeek SUN ON S.id = SUN.id
-            WHERE S.patient = @patient";
-
-            string queryCalories = @"SELECT ISNULL(MON.MONCalories, 0) + ISNULL(TUE.TUESCalories, 0) + ISNULL(WED.WEDCalories, 0) + ISNULL(THU.THURSCalories, 0) + ISNULL(FRI.FRICalories, 0) + ISNULL(SAT.SATCalories, 0) + ISNULL(SUN.SUNCalories, 0) AS TotalCalories FROM BIAStudent S LEFT JOIN MONDayWeek MON ON S.id = MON.id
-            LEFT JOIN TUESDayWeek TUE ON S.id = TUE.id
-            LEFT JOIN WEDDayWeek WED ON S.id = WED.id
-            LEFT JOIN THURSDayWeek THU ON S.id = THU.id
-            LEFT JOIN FRIDayWeek FRI ON S.id = FRI.id
-            LEFT JOIN SATDayWeek SAT ON S.id = SAT.id
-            LEFT JOIN SUNDayWeek SUN ON S.id = SUN.id
-            WHERE S.patient = @patient";
-
-            try
+            foreach (var index in proteinIndices)
             {
-                using (SqlConnection connection = new SqlConnection(connectionString))
+                if (excelTable[rowIndex, index] == "-")
                 {
-                    connection.Open();
+                    return (-1, -1, -1, -1); // Если хотя бы одно значение равно "-", пропускаем этого студента
+                }
+                totalProteins += Convert.ToDecimal(excelTable[rowIndex, index]);
+            }
+            foreach (var index in fatIndices)
+            {
+                if (excelTable[rowIndex, index] == "-")
+                {
+                    return (-1, -1, -1, -1);
+                }
+                totalFats += Convert.ToDecimal(excelTable[rowIndex, index]);
+            }
+            foreach (var index in carbIndices)
+            {
+                if (excelTable[rowIndex, index] == "-")
+                {
+                    return (-1, -1, -1, -1);
+                }
+                totalCarbohydrates += Convert.ToDecimal(excelTable[rowIndex, index]);
+            }
+            foreach (var index in calorieIndices)
+            {
+                if (excelTable[rowIndex, index] == "-")
+                {
+                    return (-1, -1, -1, -1);
+                }
+                totalCalories += Convert.ToDecimal(excelTable[rowIndex, index]);
+            }
 
-                    // Проверка наличия пациента
-                    SqlCommand commandCheckPatient = new SqlCommand(queryCheckPatient, connection);
-                    commandCheckPatient.Parameters.AddWithValue("@patient", patient);
-                    int patientCount = (int)commandCheckPatient.ExecuteScalar();
+            return (totalProteins / daysCount, totalFats / daysCount, totalCarbohydrates / daysCount, totalCalories / daysCount);
+        }
 
-                    if (patientCount == 0)
+        private (decimal avgProteins, decimal avgFats, decimal avgCarbohydrates, decimal avgCalories) GetWeeklyAveragesForAll()
+        {
+            // Индексы столбцов с данными
+            int[] proteinIndices = { 35, 51, 67, 83, 99, 115, 131 };
+            int[] fatIndices = { 36, 52, 68, 84, 100, 116, 132 };
+            int[] carbIndices = { 37, 53, 69, 85, 101, 117, 133 };
+            int[] calorieIndices = { 38, 54, 70, 86, 102, 118, 134 };
+
+            decimal totalProteins = 0, totalFats = 0, totalCarbohydrates = 0, totalCalories = 0;
+            int validStudentCount = 0;
+
+            for (int i = 1; i < excelTable.GetLength(0); i++)
+            {
+                decimal studentProteins = 0, studentFats = 0, studentCarbohydrates = 0, studentCalories = 0;
+                bool validData = true;
+
+                foreach (var index in proteinIndices)
+                {
+                    if (excelTable[i, index] == "-")
                     {
-                        MessageBox.Show("Пациент не найден. Пожалуйста, введите корректное имя пациента.");
-                        return;
+                        validData = false;
+                        break;
                     }
-
-                    // Выполнение первого запроса (Белки)
-                    SqlCommand commandProteins = new SqlCommand(queryProteins, connection);
-                    commandProteins.Parameters.AddWithValue("@patient", patient);
-                    decimal totalProteins = (decimal)commandProteins.ExecuteScalar();
-
-                    // Выполнение второго запроса (Жиры)
-                    SqlCommand commandFats = new SqlCommand(queryFats, connection);
-                    commandFats.Parameters.AddWithValue("@patient", patient);
-                    decimal totalFats = (decimal)commandFats.ExecuteScalar();
-
-                    // Выполнение третьего запроса (Углеводы)
-                    SqlCommand commandCarbohydrates = new SqlCommand(queryCarbohydrates, connection);
-                    commandCarbohydrates.Parameters.AddWithValue("@patient", patient);
-                    decimal totalCarbohydrates = (decimal)commandCarbohydrates.ExecuteScalar();
-
-                    // Выполнение четвёртого запроса (Калории)
-                    SqlCommand commandCalories = new SqlCommand(queryCalories, connection);
-                    commandCalories.Parameters.AddWithValue("@patient", patient);
-                    decimal totalCalories = (decimal)commandCalories.ExecuteScalar();
-
-                    // Форматирование результата
-                    string result = $"Результат по пациенту {patient} за неделю:\nБелки: {totalProteins}\nЖиры: {totalFats}\nУглеводы: {totalCarbohydrates}\nКалории: {totalCalories}";
-
-                    // Запись результата в файл weeklyFCs.txt
-                    string filePath = "weeklyFCs.txt";
-                    File.WriteAllText(filePath, result);
-
-                    // Показать сообщение об успешной записи
-                    MessageBox.Show("Результат записан в файл weeklyFCs.txt");
+                    studentProteins += Convert.ToDecimal(excelTable[i, index]);
                 }
+
+                if (!validData) continue;
+
+                foreach (var index in fatIndices)
+                {
+                    if (excelTable[i, index] == "-")
+                    {
+                        validData = false;
+                        break;
+                    }
+                    studentFats += Convert.ToDecimal(excelTable[i, index]);
+                }
+
+                if (!validData) continue;
+
+                foreach (var index in carbIndices)
+                {
+                    if (excelTable[i, index] == "-")
+                    {
+                        validData = false;
+                        break;
+                    }
+                    studentCarbohydrates += Convert.ToDecimal(excelTable[i, index]);
+                }
+
+                if (!validData) continue;
+
+                foreach (var index in calorieIndices)
+                {
+                    if (excelTable[i, index] == "-")
+                    {
+                        validData = false;
+                        break;
+                    }
+                    studentCalories += Convert.ToDecimal(excelTable[i, index]);
+                }
+
+                if (!validData) continue;
+
+                totalProteins += studentProteins;
+                totalFats += studentFats;
+                totalCarbohydrates += studentCarbohydrates;
+                totalCalories += studentCalories;
+                validStudentCount++;
             }
-            catch (Exception ex)
+
+            if (validStudentCount == 0)
             {
-                MessageBox.Show("Произошла ошибка: " + ex.Message);
+                return (0, 0, 0, 0);
             }
-        }
 
-        private void IDInput_TextChanged(object sender, EventArgs e)
-        {
-
+            int daysCount = 7;
+            return (totalProteins / (validStudentCount * daysCount), totalFats / (validStudentCount * daysCount), totalCarbohydrates / (validStudentCount * daysCount), totalCalories / (validStudentCount * daysCount));
         }
     }
 }

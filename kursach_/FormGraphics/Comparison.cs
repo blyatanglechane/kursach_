@@ -15,267 +15,230 @@ namespace kursach_.FormGraphics
 {
     public partial class Comparison : Form
     {
-        public Comparison()
+        private string[,] excelTable;
+
+        public Comparison(string[,] table)
         {
             InitializeComponent();
+            excelTable = table;
         }
 
         private void ButtonIDEvent_Click(object sender, EventArgs e)
         {
-            // Переменная для хранения ИД студента
-            int id;
+            // Получаем ФИО из текстового поля
+            string patient = IDInputFood.Text;
 
-            // Проверка корректности введённых данных
-            if (!int.TryParse(IDInputFood.Text, out id) || id < 1 || id > 457)
+            // Поиск строки, соответствующей заданному ФИО
+            int rowIndex = -1;
+            for (int i = 0; i < excelTable.GetLength(0); i++)
             {
-                MessageBox.Show("Пожалуйста, введите корректное числовое значение для ID в диапазоне от 1 до 457.");
+                if (excelTable[i, 0]?.Equals(patient, StringComparison.OrdinalIgnoreCase) ?? false)
+                {
+                    rowIndex = i;
+                    break;
+                }
+            }
+
+            if (rowIndex == -1)
+            {
+                MessageBox.Show("Пациент не найден. Пожалуйста, введите корректное имя пациента.");
                 return;
             }
 
-            // Строка подключения к базе данных (замените на свою)
-            string connectionString = "Data Source=.;Initial Catalog=DBBIA;Integrated Security=True";
+            // Получаем данные студента
+            string gender = excelTable[rowIndex, 1] ?? "";
+            int age = int.TryParse(excelTable[rowIndex, 2], out int parsedAge) ? parsedAge : 0;
+            decimal height = decimal.TryParse(excelTable[rowIndex, 3], out decimal parsedHeight) ? parsedHeight : 0;
+            decimal weight = decimal.TryParse(excelTable[rowIndex, 4], out decimal parsedWeight) ? parsedWeight : 0;
+            string BMIassessment = excelTable[rowIndex, 6] ?? "";
 
-            // SQL запросы для получения пола, возраста, роста и веса студента
-            string queryGender = "SELECT gender FROM BIAStudent WHERE id = @id";
-            string queryAge = "SELECT age FROM BIAStudent WHERE id = @id";
-            string queryHeight = "SELECT height FROM BIAStudent WHERE id = @id";
-            string queryWeight = "SELECT Weight FROM BIAStudent WHERE id = @id";
-            string queryBMIassessment = "SELECT BMIassessment FROM BIAStudent WHERE id = @id";
+            // Рассчитываем BMR
+            double BMR = 0;
+            if (gender == "М")
+            {
+                BMR = 10 * (double)weight + 6.25 * (double)height - 5 * age + 5;
+            }
+            else if (gender == "Ж")
+            {
+                BMR = 10 * (double)weight + 6.25 * (double)height - 5 * age - 161;
+            }
 
-            // SQL запросы для получения данных по жирам, углеводам и белкам для каждого дня недели
-            string[] queries = {
-        "SELECT MONProteins, MONFats, MONCarbohydrates FROM MONDayWeek WHERE id = @id",
-        "SELECT TUESProteins, TUESFats, TUESCarbohydrates FROM TUESDayWeek WHERE id = @id",
-        "SELECT WEDProteins, WEDFats, WEDCarbohydrates FROM WEDDayWeek WHERE id = @id",
-        "SELECT THURSProteins, THURSFats, THURSCarbohydrates FROM THURSDayWeek WHERE id = @id",
-        "SELECT FRIProteins, FRIFats, FRICarbohydrates FROM FRIDayWeek WHERE id = @id",
-        "SELECT SATProteins, SATFats, SATCarbohydrates FROM SATDayWeek WHERE id = @id",
-        "SELECT SUNProteins, SUNFats, SUNCarbohydrates FROM SUNDayWeek WHERE id = @id"
-    };
+            // Индексы столбцов с данными для каждого дня недели
+            int[] proteinIndices = { 35, 51, 67, 83, 99, 115, 131 };
+            int[] fatIndices = { 36, 52, 68, 84, 100, 116, 132 };
+            int[] carbIndices = { 37, 53, 69, 85, 101, 117, 133 };
+            int[] calorieIndices = { 38, 54, 70, 86, 102, 118, 134 };
+            int[] activityIndices = { 44, 60, 76, 92, 108, 124, 140 };
 
-            // SQL запросы для проверки активности за каждый день недели и получения калорий
-            string[] queries2 = {
-        "SELECT MONTheTypeOfTraining, MONCalories FROM MONDayWeek WHERE id = @id",
-        "SELECT TUESTheTypeOfTraining, TUESCalories FROM TUESDayWeek WHERE id = @id",
-        "SELECT WEDTheTypeOfTraining, WEDCalories FROM WEDDayWeek WHERE id = @id",
-        "SELECT THURSTheTypeOfTraining, THURSCalories FROM THURSDayWeek WHERE id = @id",
-        "SELECT FRITheTypeOfTraining, FRICalories FROM FRIDayWeek WHERE id = @id",
-        "SELECT SATTheTypeOfTraining, SATCalories FROM SATDayWeek WHERE id = @id",
-        "SELECT SUNTheTypeOfTraining, SUNCalories FROM SUNDayWeek WHERE id = @id"
-    };
+            // Получаем количество активных дней и калории
+            int totalActiveDays = 0;
+            decimal[] dailyCalories = new decimal[7];
+            string[] days = { "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресение" };
 
+            decimal[][] macronutrients = new decimal[7][];
+            for (int i = 0; i < 7; i++)
+            {
+                macronutrients[i] = new decimal[3];
+                macronutrients[i][0] = decimal.TryParse(excelTable[rowIndex, proteinIndices[i]], out decimal parsedProteins) ? parsedProteins : 0;
+                macronutrients[i][1] = decimal.TryParse(excelTable[rowIndex, fatIndices[i]], out decimal parsedFats) ? parsedFats : 0;
+                macronutrients[i][2] = decimal.TryParse(excelTable[rowIndex, carbIndices[i]], out decimal parsedCarbs) ? parsedCarbs : 0;
+                dailyCalories[i] = decimal.TryParse(excelTable[rowIndex, calorieIndices[i]], out decimal parsedCalories) ? parsedCalories : 0;
+
+                string activity = excelTable[rowIndex, activityIndices[i]] ?? "";
+                if (!string.IsNullOrEmpty(activity) && activity != "0")
+                {
+                    totalActiveDays++;
+                }
+            }
+
+            // Применяем коэффициент активности к BMR для каждого дня
+            double[] dailyBMR = new double[7];
+            for (int i = 0; i < 7; i++)
+            {
+                string activity = excelTable[rowIndex, activityIndices[i]] ?? "";
+                double activityFactor = 1.2; // Базовый коэффициент для низкой активности
+
+                if (!string.IsNullOrEmpty(activity) && activity != "0")
+                {
+                    if (totalActiveDays == 1 || totalActiveDays == 2 || totalActiveDays == 3)
+                    {
+                        activityFactor = 1.375; // Легкая активность
+                    }
+                    else if (totalActiveDays == 4 || totalActiveDays == 5)
+                    {
+                        activityFactor = 1.55; // Средняя активность
+                    }
+                    else if (totalActiveDays == 6)
+                    {
+                        activityFactor = 1.725; // Высокая активность
+                    }
+                    else if (totalActiveDays == 7)
+                    {
+                        activityFactor = 1.9; // Очень высокая активность
+                    }
+                }
+
+                dailyBMR[i] = BMR * activityFactor;
+            }
+
+            // Формируем результат для сравнения макронутриентов
+            StringBuilder resultMacros = new StringBuilder();
+            resultMacros.AppendLine($"Сравнение фактического и оптимального употребления для {patient} по жирам, углеводам и белкам:\n");
+
+            for (int i = 0; i < days.Length; i++)
+            {
+                decimal proteins = macronutrients[i][0];
+                decimal fats = macronutrients[i][1];
+                decimal carbohydrates = macronutrients[i][2];
+
+                // Расчет процентного соотношения
+                decimal total = proteins + fats + carbohydrates;
+                int proteinsPercentage = (int)((proteins / total) * 100);
+                int fatsPercentage = (int)((fats / total) * 100);
+                int carbohydratesPercentage = 100 - proteinsPercentage - fatsPercentage;
+
+                // Нахождение минимального значения среди белков, жиров и углеводов
+                decimal minMacronutrient = Math.Min(proteins, Math.Min(fats, carbohydrates));
+
+                // Расчет соотношения макронутриентов относительно минимального значения
+                decimal proteinRatio = Math.Round(proteins / minMacronutrient, 1);
+                decimal fatRatio = Math.Round(fats / minMacronutrient, 1);
+                decimal carbRatio = Math.Round(carbohydrates / minMacronutrient, 1);
+
+                // Формирование строки вывода с вердиктом
+                string verdict = "";
+                if (BMIassessment == "дефицит МТ")
+                {
+                    if (proteinsPercentage < 25)
+                        verdict += "нужно больше белков, ";
+                    else if (proteinsPercentage > 35)
+                        verdict += "нужно меньше белков, ";
+
+                    if (fatsPercentage < 15)
+                        verdict += "нужно больше жиров, ";
+                    else if (fatsPercentage > 25)
+                        verdict += "нужно меньше жиров, ";
+
+                    if (carbohydratesPercentage < 40)
+                        verdict += "нужно больше углеводов, ";
+                    else if (carbohydratesPercentage > 60)
+                        verdict += "нужно меньше углеводов, ";
+                }
+                else if (BMIassessment == "норма")
+                {
+                    if (proteinsPercentage < 25)
+                        verdict += "нужно больше белков, ";
+                    else if (proteinsPercentage > 35)
+                        verdict += "нужно меньше белков, ";
+
+                    if (fatsPercentage < 25)
+                        verdict += "нужно больше жиров, ";
+                    else if (fatsPercentage > 35)
+                        verdict += "нужно меньше жиров, ";
+
+                    if (carbohydratesPercentage < 30)
+                        verdict += "нужно больше углеводов, ";
+                    else if (carbohydratesPercentage > 50)
+                        verdict += "нужно меньше углеводов, ";
+                }
+                else if (BMIassessment == "избыточная МТ" || BMIassessment == "ожирение I ст." || BMIassessment == "ожирение II ст." || BMIassessment == "ожирение III ст.")
+                {
+                    if (proteinsPercentage < 40)
+                        verdict += "нужно больше белков, ";
+                    else if (proteinsPercentage > 50)
+                        verdict += "нужно меньше белков, ";
+
+                    if (fatsPercentage < 30)
+                        verdict += "нужно больше жиров, ";
+                    else if (fatsPercentage > 40)
+                        verdict += "нужно меньше жиров, ";
+
+                    if (carbohydratesPercentage < 30)
+                        verdict += "нужно больше углеводов, ";
+                    else if (carbohydratesPercentage > 50)
+                        verdict += "нужно меньше углеводов, ";
+                }
+
+                // Убираем лишнюю запятую в конце строки
+                if (verdict.EndsWith(", "))
+                    verdict = verdict.Substring(0, verdict.Length - 2);
+                if (verdict == "")
+                    verdict = "норма";
+
+                resultMacros.AppendLine($"{days[i]}: белки - {proteins} г, жиры - {fats} г, углеводы - {carbohydrates} г.\n{proteinsPercentage}%/{fatsPercentage}%/{carbohydratesPercentage}%. \nСоотношение: {proteinRatio}:{fatRatio}:{carbRatio}. \nВердикт: {verdict}\n");
+            }
+
+            // Формируем результат для сравнения калорий
+            StringBuilder resultCalories = new StringBuilder();
+            resultCalories.AppendLine($"Результат анализа BMIassessment: {BMIassessment}\n");
+            resultCalories.AppendLine($"Сравнение фактического и оптимального употребления калорий для {patient}:\n");
+
+            for (int i = 0; i < days.Length; i++)
+            {
+                decimal actualCalories = dailyCalories[i];
+                decimal optimalCalories = (decimal)dailyBMR[i];
+                decimal percentageDifference = ((actualCalories - optimalCalories) / optimalCalories) * 100;
+                resultCalories.AppendLine($"{days[i]}: фактическое - {actualCalories}, оптимальное - {optimalCalories}, Отклонение: {Math.Abs(percentageDifference):F2}%");
+            }
+
+            // Запись результатов в файл
+            string filePath = "comparison.txt";
             try
             {
-                using (SqlConnection connection = new SqlConnection(connectionString))
+                using (StreamWriter writer = new StreamWriter(filePath, false))
                 {
-                    connection.Open();
-
-                    // Получаем пол, возраст, рост и вес
-                    string gender;
-                    int age;
-                    decimal height;
-                    decimal weight;
-                    string BMIassessment;
-
-                    using (SqlCommand command = new SqlCommand(queryGender, connection))
-                    {
-                        command.Parameters.AddWithValue("@id", id);
-                        gender = command.ExecuteScalar().ToString();
-                    }
-                    using (SqlCommand command = new SqlCommand(queryAge, connection))
-                    {
-                        command.Parameters.AddWithValue("@id", id);
-                        age = (int)command.ExecuteScalar();
-                    }
-                    using (SqlCommand command = new SqlCommand(queryHeight, connection))
-                    {
-                        command.Parameters.AddWithValue("@id", id);
-                        height = (decimal)command.ExecuteScalar();
-                    }
-                    using (SqlCommand command = new SqlCommand(queryWeight, connection))
-                    {
-                        command.Parameters.AddWithValue("@id", id);
-                        weight = (decimal)command.ExecuteScalar();
-                    }
-                    using (SqlCommand command = new SqlCommand(queryBMIassessment, connection))
-                    {
-                        command.Parameters.AddWithValue("@id", id);
-                        BMIassessment = command.ExecuteScalar().ToString();
-                    }
-
-                    // Рассчитываем BMR
-                    double BMR = 0;
-                    if (gender == "М")
-                    {
-                        BMR = 10 * (double)weight + 6.25 * (double)height - 5 * age + 5;
-                    }
-                    else if (gender == "Ж")
-                    {
-                        BMR = 10 * (double)weight + 6.25 * (double)height - 5 * age - 161;
-                    }
-
-                    // Получаем количество активных дней и калории
-                    List<decimal[]> macronutrients = new List<decimal[]>();
-
-                    // Запросы для получения данных по жирам, углеводам и белкам для каждого дня недели
-                    for (int i = 0; i < queries.Length; i++)
-                    {
-                        using (SqlCommand command = new SqlCommand(queries[i], connection))
-                        {
-                            command.Parameters.AddWithValue("@id", id);
-                            using (SqlDataReader reader = command.ExecuteReader())
-                            {
-                                if (reader.Read())
-                                {
-                                    decimal proteins = reader.GetDecimal(0);
-                                    decimal fats = reader.GetDecimal(1);
-                                    decimal carbohydrates = reader.GetDecimal(2);
-
-                                    // Сохраняем данные по жирам, углеводам и белкам для каждого дня недели
-                                    macronutrients.Add(new decimal[] { proteins, fats, carbohydrates });
-                                }
-                            }
-                        }
-                    }
-
-                    // Получаем количество активных дней и калории
-                    int totalActiveDays = 0;
-                    decimal[] dailyCalories = new decimal[7];
-                    string[] days = { "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресение" };
-
-                    for (int i = 0; i < queries2.Length; i++)
-                    {
-                        using (SqlCommand command = new SqlCommand(queries2[i], connection))
-                        {
-                            command.Parameters.AddWithValue("@id", id);
-                            using (SqlDataReader reader = command.ExecuteReader())
-                            {
-                                if (reader.Read())
-                                {
-                                    string activity = reader.GetString(0); // Получаем значение столбца с типом активности
-                                    dailyCalories[i] = reader.GetDecimal(1); // Получаем калории
-                                    if (activity != "0")
-                                    {
-                                        totalActiveDays++;
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // Применяем коэффициент активности к BMR
-                    double activityFactor = 0;
-                    if (totalActiveDays == 0) activityFactor = 1.2;
-                    else if (totalActiveDays >= 1 && totalActiveDays <= 3) activityFactor = 1.375;
-                    else if (totalActiveDays >= 4 && totalActiveDays <= 5) activityFactor = 1.55;
-                    else if (totalActiveDays == 6) activityFactor = 1.725;
-                    else if (totalActiveDays == 7) activityFactor = 1.9;
-
-                    BMR *= activityFactor;
-
-                    // Формируем результат
-                    StringBuilder result = new StringBuilder();
-                    result.AppendLine($"Сравнение фактического и оптимального употребления для ID {id} по жирам, углеводам и белкам:");
-
-                    for (int i = 0; i < days.Length; i++)
-                    {
-                        decimal proteins = macronutrients[i][0];
-                        decimal fats = macronutrients[i][1];
-                        decimal carbohydrates = macronutrients[i][2];
-
-                        // Расчет процентного соотношения
-                        decimal total = proteins + fats + carbohydrates;
-                        int proteinsPercentage = (int)((proteins / total) * 100);
-                        int fatsPercentage = (int)((fats / total) * 100);
-                        int carbohydratesPercentage = 100 - proteinsPercentage - fatsPercentage;
-
-                        // Формирование строки вывода с вердиктом
-                        string verdict = "";
-                        if (BMIassessment == "дефицит МТ")
-                        {
-                            if (proteinsPercentage < 25)
-                                verdict += "нужно больше белков, ";
-                            else if (proteinsPercentage > 35)
-                                verdict += "нужно меньше белков, ";
-
-                            if (fatsPercentage < 15)
-                                verdict += "нужно больше жиров, ";
-                            else if (fatsPercentage > 25)
-                                verdict += "нужно меньше жиров, ";
-
-                            if (carbohydratesPercentage < 40)
-                                verdict += "нужно больше углеводов, ";
-                            else if (carbohydratesPercentage > 60)
-                                verdict += "нужно меньше углеводов, ";
-                        }
-                        else if (BMIassessment == "норма")
-                        {
-                            if (proteinsPercentage < 25)
-                                verdict += "нужно больше белков, ";
-                            else if(proteinsPercentage > 35)
-                                verdict += "нужно меньше белков, ";
-
-                            if (fatsPercentage < 25)
-                                verdict += "нужно больше жиров, ";
-                            else if(fatsPercentage > 35)
-                                verdict += "нужно меньше жиров, ";
-
-                            if (carbohydratesPercentage < 30)
-                                verdict += "нужно больше углеводов, ";
-                            else if(carbohydratesPercentage > 50)
-                                verdict += "нужно меньше углеводов, ";
-                        }
-                        else if (BMIassessment == "избыточная МТ" || BMIassessment == "ожирение I ст." || BMIassessment == "ожирение II ст." || BMIassessment == "ожирение III ст.")
-                        {
-                            if (proteinsPercentage < 40)
-                                verdict += "нужно больше белков, ";
-                            else if(proteinsPercentage > 50)
-                                verdict += "нужно меньше белков, ";
-
-                            if (fatsPercentage < 30)
-                                verdict += "нужно больше жиров, ";
-                            else if(fatsPercentage > 40)
-                                verdict += "нужно меньше жиров, ";
-
-                            if (carbohydratesPercentage < 30)
-                                verdict += "нужно больше углеводов, ";
-                            else if(carbohydratesPercentage > 50)
-                                verdict += "нужно меньше углеводов, ";
-                        }
-
-                        // Убираем лишнюю запятую в конце строки
-                        if (verdict.EndsWith(", "))
-                            verdict = verdict.Substring(0, verdict.Length - 2);
-                        if (verdict == "")
-                            verdict = "норма";
-
-                        result.AppendLine($"{days[i]}: белки - {proteins}, жиры - {fats}, углеводы - {carbohydrates}. {proteinsPercentage}%/{fatsPercentage}%/{carbohydratesPercentage}%. Вердикт: {verdict}.");
-                    }
-                    // Добавляем информацию о BMIassessment в конец файла
-                    result.AppendLine();
-                    result.AppendLine($"Результат анализа BMIassessment: {BMIassessment}");
-
-                    result.AppendLine($"Сравнение фактического и оптимального употребления каллорий для ID {id}:\n");
-
-                    for (int i = 0; i < days.Length; i++)
-                    {
-                        double difference = (double)dailyCalories[i] - BMR;
-                        result.AppendLine($"{days[i]}: фактическое - {dailyCalories[i].ToString("0.##", CultureInfo.InvariantCulture)}, оптимальное - {BMR.ToString("0.##", CultureInfo.InvariantCulture)}, Разница: {difference.ToString("0.##", CultureInfo.InvariantCulture)}");
-                    }
-
-                    // Запись результата в файл
-                    string filePath = "comparison.txt";
-                    File.WriteAllText(filePath, result.ToString());
-
-                    // Показать сообщение об успешной записи
-                    MessageBox.Show("Результат записан в файл comparison.txt");
+                    writer.WriteLine(resultMacros.ToString());
+                    writer.WriteLine(resultCalories.ToString());
                 }
+                MessageBox.Show("Результаты сравнения успешно записаны в файл comparison.txt.", "Успешная запись", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Произошла ошибка: " + ex.Message);
+                MessageBox.Show($"Ошибка при записи в файл: {ex.Message}", "Ошибка записи", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-        }
 
+            // Выводим результаты в MessageBox
+            MessageBox.Show(resultMacros.ToString() + Environment.NewLine + resultCalories.ToString(), "Результаты сравнения", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
     }
 }

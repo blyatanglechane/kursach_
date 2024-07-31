@@ -44,7 +44,7 @@
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(129, 34);
             this.button1.TabIndex = 0;
-            this.button1.Text = "button1";
+            this.button1.Text = "Пуск";
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
@@ -52,11 +52,11 @@
             // 
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.label1.Location = new System.Drawing.Point(43, 60);
+            this.label1.Location = new System.Drawing.Point(30, 60);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(523, 32);
+            this.label1.Size = new System.Drawing.Size(563, 32);
             this.label1.TabIndex = 1;
-            this.label1.Text = "Введите ID и выберите день недели";
+            this.label1.Text = "Введите ФИО и выберите день недели";
             // 
             // DayIdInput
             // 

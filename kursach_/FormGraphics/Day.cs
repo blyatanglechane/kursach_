@@ -1,31 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
 using System.Windows.Forms;
-using System.Data.SqlClient;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using System.IO;
 
 namespace kursach_.FormGraphics
 {
     public partial class Day : Form
     {
-        public Day()
+        private string[,] excelTable;
+
+        public Day(string[,] table)
         {
             InitializeComponent();
+            excelTable = table;
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
             // Проверка корректности введённых данных
-            if (!int.TryParse(DayIdInput.Text, out int id) || id < 1 || id > 457)
+            string name = DayIdInput.Text;
+            if (string.IsNullOrWhiteSpace(name))
             {
-                MessageBox.Show("Пожалуйста, введите корректное числовое значение для ID в диапазоне от 1 до 457.");
+                MessageBox.Show("Пожалуйста, введите корректное имя.");
                 return;
             }
 
@@ -36,120 +33,131 @@ namespace kursach_.FormGraphics
             }
 
             string selectedDay = comboBox1.SelectedItem.ToString();
-            string tableName = "";
-            string proteinsColumn = "";
-            string fatsColumn = "";
-            string carbohydratesColumn = "";
-            string caloriesColumn = "";
+            int dayColumnOffset;
 
             switch (selectedDay)
             {
                 case "понедельник":
-                    tableName = "MONDayWeek";
-                    proteinsColumn = "MONProteins";
-                    fatsColumn = "MONFats";
-                    carbohydratesColumn = "MONCarbohydrates";
-                    caloriesColumn = "MONCalories";
+                    dayColumnOffset = 35;
                     break;
                 case "вторник":
-                    tableName = "TUESDayWeek";
-                    proteinsColumn = "TUESProteins";
-                    fatsColumn = "TUESFats";
-                    carbohydratesColumn = "TUESCarbohydrates";
-                    caloriesColumn = "TUESCalories";
+                    dayColumnOffset = 51;
                     break;
                 case "среда":
-                    tableName = "WEDDayWeek";
-                    proteinsColumn = "WEDProteins";
-                    fatsColumn = "WEDFats";
-                    carbohydratesColumn = "WEDCarbohydrates";
-                    caloriesColumn = "WEDCalories";
+                    dayColumnOffset = 67;
                     break;
                 case "четверг":
-                    tableName = "THURSDayWeek";
-                    proteinsColumn = "THURSProteins";
-                    fatsColumn = "THURSFats";
-                    carbohydratesColumn = "THURSCarbohydrates";
-                    caloriesColumn = "THURSCalories";
+                    dayColumnOffset = 83;
                     break;
                 case "пятница":
-                    tableName = "FRIDayWeek";
-                    proteinsColumn = "FRIProteins";
-                    fatsColumn = "FRIFats";
-                    carbohydratesColumn = "FRICarbohydrates";
-                    caloriesColumn = "FRICalories";
+                    dayColumnOffset = 99;
                     break;
                 case "суббота":
-                    tableName = "SATDayWeek";
-                    proteinsColumn = "SATProteins";
-                    fatsColumn = "SATFats";
-                    carbohydratesColumn = "SATCarbohydrates";
-                    caloriesColumn = "SATCalories";
+                    dayColumnOffset = 115;
                     break;
                 case "воскресенье":
-                    tableName = "SUNDayWeek";
-                    proteinsColumn = "SUNProteins";
-                    fatsColumn = "SUNFats";
-                    carbohydratesColumn = "SUNCarbohydrates";
-                    caloriesColumn = "SUNCalories";
+                    dayColumnOffset = 131;
                     break;
                 default:
                     MessageBox.Show("Неверный день недели.");
                     return;
             }
 
-            string connectionString = "Data Source=.;Initial Catalog=DBBIA;Integrated Security=True";
-            string query = $@"
-        SELECT 
-            ISNULL({proteinsColumn}, 0) AS Proteins,
-            ISNULL({fatsColumn}, 0) AS Fats,
-            ISNULL({carbohydratesColumn}, 0) AS Carbohydrates,
-            ISNULL({caloriesColumn}, 0) AS Calories
-        FROM {tableName}
-        WHERE id = @id";
-
             try
             {
-                using (SqlConnection connection = new SqlConnection(connectionString))
+                // Найдем строку для заданного имени
+                string[] studentData = null;
+                for (int i = 0; i < excelTable.GetLength(0); i++)
                 {
-                    connection.Open();
-
-                    using (SqlCommand command = new SqlCommand(query, connection))
+                    if (excelTable[i, 0].Equals(name, StringComparison.OrdinalIgnoreCase))
                     {
-                        command.Parameters.AddWithValue("@id", id);
-
-                        using (SqlDataReader reader = command.ExecuteReader())
+                        studentData = new string[excelTable.GetLength(1)];
+                        for (int j = 0; j < excelTable.GetLength(1); j++)
                         {
-                            if (reader.Read())
-                            {
-                                decimal proteins = reader.GetDecimal(0);
-                                decimal fats = reader.GetDecimal(1);
-                                decimal carbohydrates = reader.GetDecimal(2);
-                                decimal calories = reader.GetDecimal(3);
-
-                                string output = $@"
-Дневная выгрузка по ID {id}:
-{selectedDay}:
-Жиры - {fats};
-Углеводы - {carbohydrates};
-Белки - {proteins};
-Калории - {calories};";
-
-                                MessageBox.Show(output);
-
-                                // Запись в текстовый файл
-                                string filePath = "DayReport.txt";
-                                File.WriteAllText(filePath, output);
-
-                                MessageBox.Show($"Результаты записаны в файл {filePath}");
-                            }
-                            else
-                            {
-                                MessageBox.Show("Нет данных для указанного ID.");
-                            }
+                            studentData[j] = excelTable[i, j];
                         }
+                        break;
                     }
                 }
+
+                if (studentData == null)
+                {
+                    MessageBox.Show("Нет данных для указанного имени.");
+                    return;
+                }
+
+                // Извлечение данных
+                decimal proteins = decimal.Parse(studentData[dayColumnOffset]);
+                decimal fats = decimal.Parse(studentData[dayColumnOffset + 1]);
+                decimal carbohydrates = decimal.Parse(studentData[dayColumnOffset + 2]);
+                decimal calories = decimal.Parse(studentData[dayColumnOffset + 3]);
+
+                string output = $@"
+Дневная выгрузка для {name}:
+{selectedDay}:
+Жиры - {fats:F1};
+Углеводы - {carbohydrates:F1};
+Белки - {proteins:F1};
+Калории - {calories:F1};
+";
+
+                // Рассчитываем средние значения БЖУК по всем студентам
+                decimal totalProteins = 0;
+                decimal totalFats = 0;
+                decimal totalCarbohydrates = 0;
+                decimal totalCalories = 0;
+                int studentCount = 0;
+
+                for (int i = 0; i < excelTable.GetLength(0); i++)
+                {
+                    // Проверка на наличие знака "-"
+                    if (excelTable[i, dayColumnOffset] == "-" ||
+                        excelTable[i, dayColumnOffset + 1] == "-" ||
+                        excelTable[i, dayColumnOffset + 2] == "-" ||
+                        excelTable[i, dayColumnOffset + 3] == "-")
+                    {
+                        continue;
+                    }
+
+                    if (decimal.TryParse(excelTable[i, dayColumnOffset], out decimal p) &&
+                        decimal.TryParse(excelTable[i, dayColumnOffset + 1], out decimal f) &&
+                        decimal.TryParse(excelTable[i, dayColumnOffset + 2], out decimal c) &&
+                        decimal.TryParse(excelTable[i, dayColumnOffset + 3], out decimal cal))
+                    {
+                        totalProteins += p;
+                        totalFats += f;
+                        totalCarbohydrates += c;
+                        totalCalories += cal;
+                        studentCount++;
+                    }
+                }
+
+                if (studentCount > 0)
+                {
+                    decimal avgProteins = totalProteins / studentCount;
+                    decimal avgFats = totalFats / studentCount;
+                    decimal avgCarbohydrates = totalCarbohydrates / studentCount;
+                    decimal avgCalories = totalCalories / studentCount;
+
+                    output += $@"
+Среднее значение БЖУК по всем студентам:
+Белки - {avgProteins:F1};
+Жиры - {avgFats:F1};
+Углеводы - {avgCarbohydrates:F1};
+Калории - {avgCalories:F1};";
+                }
+                else
+                {
+                    output += "\nНет данных для расчета средних значений.";
+                }
+
+                MessageBox.Show(output);
+
+                // Запись в текстовый файл
+                string filePath = "DayReport.txt";
+                File.WriteAllText(filePath, output);
+
+                MessageBox.Show($"Результаты записаны в файл {filePath}");
             }
             catch (Exception ex)
             {
