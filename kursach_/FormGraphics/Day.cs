@@ -92,8 +92,7 @@ namespace kursach_.FormGraphics
                 decimal carbohydrates = decimal.Parse(studentData[dayColumnOffset + 2]);
                 decimal calories = decimal.Parse(studentData[dayColumnOffset + 3]);
 
-                string output = $@"
-Дневная выгрузка для {name}:
+                string output = $@"Дневная выгрузка для {name}:
 {selectedDay}:
 Жиры - {fats:F1};
 Углеводы - {carbohydrates:F1};
@@ -151,17 +150,14 @@ namespace kursach_.FormGraphics
                     output += "\nНет данных для расчета средних значений.";
                 }
 
-                MessageBox.Show(output);
-
                 // Запись в текстовый файл
                 string filePath = "DayReport.txt";
                 File.WriteAllText(filePath, output);
-
-                MessageBox.Show($"Результаты записаны в файл {filePath}");
+                MessageBox.Show($"Результаты записаны в файл {filePath}", "Успешная запись", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Произошла ошибка: " + ex.Message);
+                MessageBox.Show("Произошла ошибка: " + ex.Message, "Ошибка записи", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

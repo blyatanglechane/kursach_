@@ -238,7 +238,12 @@ namespace kursach_.FormGraphics
             }
 
             // Выводим результаты в MessageBox
-            MessageBox.Show(resultMacros.ToString() + Environment.NewLine + resultCalories.ToString(), "Результаты сравнения", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            //MessageBox.Show(resultMacros.ToString() + Environment.NewLine + resultCalories.ToString(), "Результаты сравнения", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void label2_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

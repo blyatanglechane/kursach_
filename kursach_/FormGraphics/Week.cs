@@ -29,7 +29,7 @@ namespace kursach_.FormGraphics
             }
 
             // Форматирование результата
-            string result = $"Результат по пациенту {patient} за неделю:\nБелки: {avgProteins:F1}\nЖиры: {avgFats:F1}\nУглеводы: {avgCarbohydrates}\nКалории: {avgCalories:F1}";
+            string result = $"Результат по пациенту {patient} за неделю:\nБелки: {avgProteins:F1}\nЖиры: {avgFats:F1}\nУглеводы: {avgCarbohydrates:F1}\nКалории: {avgCalories:F1}";
 
             // Получаем средние значения за неделю по всем студентам
             var (overallAvgProteins, overallAvgFats, overallAvgCarbohydrates, overallAvgCalories) = GetWeeklyAveragesForAll();
