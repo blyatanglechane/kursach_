@@ -75,7 +75,6 @@
             this.label2.Size = new System.Drawing.Size(311, 29);
             this.label2.TabIndex = 4;
             this.label2.Text = " Введите ФИО студента";
-            this.label2.Click += new System.EventHandler(this.label2_Click);
             // 
             // ButtonIDEvent
             // 

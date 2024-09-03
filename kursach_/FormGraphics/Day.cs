@@ -150,8 +150,8 @@ namespace kursach_.FormGraphics
                     output += "\nНет данных для расчета средних значений.";
                 }
 
-                // Запись в текстовый файл
-                string filePath = "DayReport.txt";
+                // Запись в текстовый файл в папке "Документы"
+                string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DayReport.txt");
                 File.WriteAllText(filePath, output);
                 MessageBox.Show($"Результаты записаны в файл {filePath}", "Успешная запись", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }

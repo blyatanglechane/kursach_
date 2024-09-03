@@ -213,16 +213,26 @@ namespace kursach_.FormGraphics
             resultCalories.AppendLine($"Результат анализа BMIassessment: {BMIassessment}\n");
             resultCalories.AppendLine($"Сравнение фактического и оптимального употребления калорий для {patient}:\n");
 
+            // Итоговые калории за неделю
+            decimal totalActualCalories = 0;
+            decimal totalOptimalCalories = 0;
+
             for (int i = 0; i < days.Length; i++)
             {
                 decimal actualCalories = dailyCalories[i];
                 decimal optimalCalories = (decimal)dailyBMR[i];
+                totalActualCalories += actualCalories;
+                totalOptimalCalories += optimalCalories;
                 decimal percentageDifference = ((actualCalories - optimalCalories) / optimalCalories) * 100;
                 resultCalories.AppendLine($"{days[i]}: фактическое - {actualCalories}, оптимальное - {optimalCalories}, Отклонение: {Math.Abs(percentageDifference):F2}%");
             }
 
-            // Запись результатов в файл
-            string filePath = "comparison.txt";
+            // Добавляем итоговое сравнение калорий за неделю
+            decimal totalCaloriesPercentageDifference = ((totalActualCalories - totalOptimalCalories) / totalOptimalCalories) * 100;
+            resultCalories.AppendLine($"\nИтог за неделю: фактическое - {totalActualCalories}, оптимальное - {totalOptimalCalories}, Отклонение: {Math.Abs(totalCaloriesPercentageDifference):F2}%");
+
+            // Запись результатов в файл "comparison.txt" в папке "Документы"
+            string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "comparison.txt");
             try
             {
                 using (StreamWriter writer = new StreamWriter(filePath, false))
@@ -230,20 +240,17 @@ namespace kursach_.FormGraphics
                     writer.WriteLine(resultMacros.ToString());
                     writer.WriteLine(resultCalories.ToString());
                 }
-                MessageBox.Show("Результаты сравнения успешно записаны в файл comparison.txt.", "Успешная запись", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Результаты сравнения успешно записаны в файл comparison.txt в папке 'Документы'.", "Успешная запись", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Ошибка при записи в файл: {ex.Message}", "Ошибка записи", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-
-            // Выводим результаты в MessageBox
-            //MessageBox.Show(resultMacros.ToString() + Environment.NewLine + resultCalories.ToString(), "Результаты сравнения", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-        private void label2_Click(object sender, EventArgs e)
+        private void Comparison_Load(object sender, EventArgs e)
         {
-
+            // Код, который нужно выполнить при загрузке формы
         }
     }
 }

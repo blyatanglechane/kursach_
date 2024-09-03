@@ -36,8 +36,8 @@ namespace kursach_.FormGraphics
 
             result += $"\n\nСреднее значение за неделю по всем студентам:\nБелки: {overallAvgProteins:F1}\nЖиры: {overallAvgFats:F1}\nУглеводы: {overallAvgCarbohydrates:F1}\nКалории: {overallAvgCalories:F1}";
 
-            // Запись результата в файл weeklyFCs.txt
-            string filePath = "weeklyFCs.txt";
+            // Запись результата в файл weeklyFCs.txt в папке "Документы"
+            string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "weeklyFCs.txt");
             File.WriteAllText(filePath, result);
 
             // Показать сообщение об успешной записи
